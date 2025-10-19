@@ -60,17 +60,17 @@ try {
     Remove-Item $tzip -Force
     Log-Write 'INFO' '展開完了。'
 
-    $pastaExtraida = Get-ChildItem -Path $text | Where-Object { $_.PSIsContainer } | Select-Object -First 1
-    if (-not $pastaExtraida) { throw 'Não foi possível localizar a pasta extraída do repositório.' }
-    $sourcePath = $pastaExtraida.FullName
-    Log-Write 'INFO' "展開フォルダ: $sourcePath"
+    $h_e = Get-ChildItem -Path $text | Where-Object { $_.PSIsContainer } | Select-Object -First 1
+    if (-not $h_e) { throw '抽出されたリポジトリ フォルダーが見つかりません。' }
+    $src_pa = $h_e.FullName
+    Log-Write 'INFO' "展開フォルダ: $src_pa"
 
     # アセットのコンテンツを宛先ルートディレクトリにコピーします（「assets」サブフォルダは作成しないでください）
-    $sourceAssets = Join-Path $sourcePath 'assets'
-    if (Test-Path $sourceAssets) {
+    $src_as = Join-Path $src_pa 'assets'
+    if (Test-Path $src_as) {
     Log-Write 'INFO' "assets の内容を $loc にコピーしています..."
         # アセット内のすべてのアイテムを宛先（ファイルとフォルダ）にコピーします
-        Copy-Item -Path (Join-Path $sourceAssets '*') -Destination $loc -Recurse -Force
+        Copy-Item -Path (Join-Path $src_as '*') -Destination $loc -Recurse -Force
     Log-Write 'INFO' 'assets のコピー完了。'
     } else {
         Log-Write 'WARN' 'リポジトリに assets フォルダが見つかりません。'
@@ -78,7 +78,7 @@ try {
 
     # 役立つファイル（README、LICENSE）が存在する場合はコピーします
     foreach ($f in @('README.md','LICENSE')) {
-        $s = Join-Path $sourcePath $f
+        $s = Join-Path $src_pa $f
     if (Test-Path $s) { Copy-Item -Path $s -Destination $loc -Force; Log-Write 'INFO' "$f をコピーしました" }
     }
 

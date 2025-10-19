@@ -1,9 +1,12 @@
 @echo off
 setlocal enabledelayedexpansion
+
 set ROOT=%~dp0
 if "%ROOT:~-1%"=="\" set ROOT=%ROOT:~0,-1%
+
 set LOGDIR=%ROOT%\logs
 if not exist "%LOGDIR%" mkdir "%LOGDIR%"
+
 set LOGFILE=%LOGDIR%\daemon.log
 
 echo %date% %time% [情報] デーモン開始 >> "%LOGFILE%"
