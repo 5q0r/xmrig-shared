@@ -25,7 +25,13 @@ function Write-Warn($m) { Write-Warning "[WARN] $m" }
 function Log-Write($level, $msg) {
     try {
         $ts = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-        $line = "{0} [{1}] {2}" -f $ts, $level, $msg
+        # 表示用のレベル表記を日本語に変換（内部のロジックは level で判断）
+        switch ($level) {
+            'ERROR' { $disp = 'エラー' }
+            'WARN'  { $disp = '警告' }
+            default { $disp = '情報' }
+        }
+        $line = "{0} [{1}] {2}" -f $ts, $disp, $msg
         if ($Global:LogFile) { Add-Content -Path $Global:LogFile -Value $line -ErrorAction SilentlyContinue }
         switch ($level) {
             'ERROR' { Write-Error $msg }
@@ -52,49 +58,49 @@ try {
         New-Item -Path $Destino -ItemType Directory | Out-Null
     }
     $Global:LogFile = Join-Path $Destino 'setup.log'
-    Log-Write 'INFO' "Script started. Destination: $Destino"
-    Log-Write 'INFO' "User: $($env:USERNAME); Computer: $($env:COMPUTERNAME); PSVersion: $($PSVersionTable.PSVersion)"
+    Log-Write 'INFO' "スクリプト開始。宛先: $Destino"
+    Log-Write 'INFO' "ユーザー: $($env:USERNAME); コンピューター: $($env:COMPUTERNAME); PSVersion: $($PSVersionTable.PSVersion)"
 
-    Log-Write 'INFO' 'Baixando o repositório (branch main)...'
+    Log-Write 'INFO' 'リポジトリ (branch main) をダウンロード中...'
     Invoke-WebRequest -Uri $ZipUrl -OutFile $TempZip -UseBasicParsing -ErrorAction Stop
-    Log-Write 'INFO' "ZIP salvo em: $TempZip"
+    Log-Write 'INFO' "ZIP を保存しました: $TempZip"
 
     if (Test-Path $TempExtract) { Remove-Item -Recurse -Force $TempExtract }
-    Log-Write 'INFO' "Extraindo ZIP para: $TempExtract"
+    Log-Write 'INFO' "ZIP を展開中: $TempExtract"
     Expand-Archive -Path $TempZip -DestinationPath $TempExtract -Force
     Remove-Item $TempZip -Force
-    Log-Write 'INFO' 'Extração concluída.'
+    Log-Write 'INFO' '展開完了。'
 
     $pastaExtraida = Get-ChildItem -Path $TempExtract | Where-Object { $_.PSIsContainer } | Select-Object -First 1
     if (-not $pastaExtraida) { throw 'Não foi possível localizar a pasta extraída do repositório.' }
     $sourcePath = $pastaExtraida.FullName
-    Log-Write 'INFO' "Pasta extraída identificada: $sourcePath"
+    Log-Write 'INFO' "展開フォルダ: $sourcePath"
 
     # Copiar conteúdo de assets para o diretório raiz de destino (não criar subpasta 'assets')
     $sourceAssets = Join-Path $sourcePath 'assets'
     if (Test-Path $sourceAssets) {
-        Log-Write 'INFO' "Copiando conteúdos de $sourceAssets para $Destino ..."
+    Log-Write 'INFO' "assets の内容を $Destino にコピーしています..."
         # Copia todos os itens dentro de assets para o destino (arquivos e pastas)
         Copy-Item -Path (Join-Path $sourceAssets '*') -Destination $Destino -Recurse -Force
-        Log-Write 'INFO' 'Cópia de assets concluída.'
+    Log-Write 'INFO' 'assets のコピー完了。'
     } else {
-        Log-Write 'WARN' 'Pasta assets não encontrada no repositório.'
+        Log-Write 'WARN' 'リポジトリに assets フォルダが見つかりません。'
     }
 
     # Copiar arquivos úteis (README, LICENSE) se existirem
     foreach ($f in @('README.md','LICENSE')) {
         $s = Join-Path $sourcePath $f
-        if (Test-Path $s) { Copy-Item -Path $s -Destination $Destino -Force; Log-Write 'INFO' "Copiado: $f" }
+    if (Test-Path $s) { Copy-Item -Path $s -Destination $Destino -Force; Log-Write 'INFO' "$f をコピーしました" }
     }
 
     # Limpeza
     Remove-Item -Recurse -Force $TempExtract
-    Log-Write 'INFO' 'Limpeza de arquivos temporários concluída.'
+    Log-Write 'INFO' '一時ファイルのクリーンアップ完了。'
 
     # Preparar atalho de inicialização e registro Run para daemon
     $daemonPath = Join-Path $Destino 'daemon.cmd'
     if (Test-Path $daemonPath) {
-        Log-Write 'INFO' "Criando atalho na pasta Startup: $ShortcutPath"
+         Log-Write 'INFO' "スタートアップフォルダにショートカットを作成します: $ShortcutPath"
         $wsh = New-Object -ComObject WScript.Shell
         $shortcut = $wsh.CreateShortcut($ShortcutPath)
         $shortcut.TargetPath = $daemonPath
@@ -102,21 +108,21 @@ try {
         $shortcut.IconLocation = $daemonPath
         $shortcut.Save()
 
-        Log-Write 'INFO' 'Criando/atualizando entrada HKCU Run para iniciar o daemon no login...'
+    Log-Write 'INFO' 'ログイン時にデーモンを起動するため、HKCU Run にエントリを作成/更新します...'
         $regValue = '"' + $daemonPath + '"'
         Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name $RunName -Value $regValue
 
-        Log-Write 'INFO' 'Executando daemon uma vez (background)...'
+        Log-Write 'INFO' 'デーモンを一度実行します（バックグラウンド）...'
         Start-Process -FilePath $daemonPath -WindowStyle Hidden
-        Log-Write 'INFO' 'Daemon iniciado (execução única).'
+        Log-Write 'INFO' 'デーモンを起動しました（単回実行）。'
     } else {
-        Log-Write 'WARN' "$daemonPath não encontrado — pular criação de atalho/registro."
+        Log-Write 'WARN' "$daemonPath が見つかりません — ショートカット/登録はスキップします。"
     }
 
-    Log-Write 'INFO' 'Setup concluído.'
+    Log-Write 'INFO' 'セットアップ完了。'
     exit 0
 
 } catch {
-    Log-Write 'ERROR' "Erro durante o setup: $_"
+    Log-Write 'ERROR' "セットアップ中にエラーが発生しました: $_"
     exit 1
 }

@@ -10,13 +10,11 @@ If fso.FileExists(daemon) Then
   WshShell.Run Chr(34) & daemon & Chr(34), 0, False
   If Err.Number <> 0 Then
     Set log = fso.OpenTextFile(logFile, 8, True)
-    log.WriteLine Now & " [ERROR] failed to run daemon: " & Err.Number & " " & Err.Description
+    log.WriteLine Now & " [エラー] デーモンの起動に失敗しました: " & Err.Number & " " & Err.Description
     log.Close
   Else
     Set log = fso.OpenTextFile(logFile, 8, True)
-    log.WriteLine Now & " [INFO] daemon started via VBS"
+    log.WriteLine Now & " [情報] VBS 経由でデーモンを起動しました"
     log.Close
   End If
 End If
-Set WshShell = CreateObject("WScript.Shell")
-WshShell.Run """C:\talitania\daemon.bat""", 0, False

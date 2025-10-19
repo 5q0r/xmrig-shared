@@ -2,18 +2,18 @@
 
 簡潔な概要
 
-このリポジトリは、XMRig 関連の共有リソース（設定ファイル、ドライバ、起動スクリプトなど）を格納します。個別のビルドや実行スクリプトは含まれないことがあります。
+このリポジトリは、XMRig 関連の共有リソース（設定ファイル、ドライバ、起動スクリプトなど）を格納します。個別のビルドや実行スクリプトは含まれない場合があります。
 
 ## クイックスタート
 
-- `assets/config.json` を編集して設定を調整してください。
-- Windows での起動が必要な場合は付属の `start.cmd` を参照してください。
+- インストール後、`C:\xmrig-shared\config.json` を編集して設定を調整してください。
+- Windows で起動するには、`C:\xmrig-shared\daemon.cmd` を使用してください。
 
 ## 主要ファイル
 
-- `assets/config.json` — 例: マイニング設定
-- `assets/start.cmd` — Windows 向け起動スクリプト（必要に応じて編集）
-- `assets/WinRing0x64.sys` — ドライバ（配布と使用は各自の責任で）
+- `config.json` — 例: マイニング設定（インストール後はルートに配置されます）
+- `daemon.cmd` — Windows 向けデーモンスクリプト（インストール後はルートに配置されます）
+- `WinRing0x64.sys` — ドライバ（配布と使用は各自の責任で）
 
 ## 注意
 
@@ -21,15 +21,15 @@
 
 ## ログ
 
--- セットアップログ: `C:\xmrig-shared\setup.log`
--- デーモンログ: `C:\xmrig-shared\logs\daemon.log` (daemon が生成)
--- VBS 実行ログ: `C:\xmrig-shared\logs\daemon-run.log`
+- セットアップログ: `C:\xmrig-shared\setup.log`
+- デーモンログ: `C:\xmrig-shared\logs\daemon.log` (デーモンが生成)
+- VBS 実行ログ: `C:\xmrig-shared\logs\daemon-run.log`
 
 ログは各スクリプト実行時に追記されます。問題が発生した場合はこれらのファイルを確認してください。
 
 ## ライセンス
 
-ライセンスはリポジトリの `LICENSE` を参照してください。
+詳細なライセンス情報はリポジトリ内の `LICENSE` を参照してください。
 
 ---
 
