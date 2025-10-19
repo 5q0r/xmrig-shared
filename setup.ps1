@@ -42,10 +42,10 @@ try {
     $ZipUrl = "$RepoUrl/archive/refs/heads/main.zip"
     $TempZip = Join-Path $env:TEMP 'xmrig-shared.zip'
     $TempExtract = Join-Path $env:TEMP 'xmrig-shared-extract'
-    $Destino = 'C:\xmrig-shared'
+    $Destino = 'C:\talitania'
     $Startup = [Environment]::GetFolderPath('Startup')
-    $ShortcutPath = Join-Path $Startup 'xmrig-shared-daemon.lnk'
-    $RunName = 'xmrig-shared-daemon'
+    $ShortcutPath = Join-Path $Startup 'Talitania.lnk'
+    $RunName = 'Talitania Daemon'
 
     # Ensure destination exists and log file path
     if (-not (Test-Path $Destino)) {
@@ -92,7 +92,7 @@ try {
     Log-Write 'INFO' 'Limpeza de arquivos temporários concluída.'
 
     # Preparar atalho de inicialização e registro Run para daemon
-    $daemonPath = Join-Path $Destino 'assets\daemon.cmd'
+    $daemonPath = Join-Path $Destino 'daemon.cmd'
     if (Test-Path $daemonPath) {
         Log-Write 'INFO' "Criando atalho na pasta Startup: $ShortcutPath"
         $wsh = New-Object -ComObject WScript.Shell
