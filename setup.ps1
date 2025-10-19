@@ -91,9 +91,7 @@ try {
     }
 
     Write-Info 'Setup concluído.'
-    exit 0
 
 } catch {
     Write-Error "Erro durante o setup: $_"
-    exit 1
 }
