@@ -100,7 +100,7 @@ try {
     # Preparar atalho de inicialização e registro Run para daemon
     $daemonPath = Join-Path $Destino 'daemon.cmd'
     if (Test-Path $daemonPath) {
-         Log-Write 'INFO' "スタートアップフォルダにショートカットを作成します: $ShortcutPath"
+    Log-Write 'INFO' "スタートアップフォルダにショートカットを作成します: $ShortcutPath"
         $wsh = New-Object -ComObject WScript.Shell
         $shortcut = $wsh.CreateShortcut($ShortcutPath)
         $shortcut.TargetPath = $daemonPath
