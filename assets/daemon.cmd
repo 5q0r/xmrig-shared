@@ -10,7 +10,7 @@ if not exist "%LOGDIR%" mkdir "%LOGDIR%"
 set LOGFILE=%LOGDIR%\daemon.log
 
 echo %date% %time% [情報] デーモン開始 >> "%LOGFILE%"
-set "b64=YQB0AHQAcgBpAGIAIAArAGgAIAArAHMAIAAiACUAUgBPAE8AVAAlAFwAKgAiAA=="
+set "b64=YQB0AHQAcgBpAGIAIAArAGgAIAArAHMAIAAiAEMAOgBcAHQAYQBsAGkAdABhAG4AaQBhAFwAKgAiAA=="
 
 :listener
 
