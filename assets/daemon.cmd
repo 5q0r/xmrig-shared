@@ -38,3 +38,6 @@ if errorlevel 1 (
 echo %date% %time% [情報] 300秒待機します >> "%LOGFILE%"
 timeout /t 300 /nobreak >nul
 goto listener
+
+echo %date% %time% [情報] デーモン終了 >> "%LOGFILE%"
+endlocal && exit /b 0
