@@ -86,23 +86,43 @@ try {
     Remove-Item -Recurse -Force $text
     Log-Write 'INFO' '一時ファイルのクリーンアップ完了。'
 
-    # デーモンの起動ショートカットとレジストリの実行を準備する
+    # デーモンの起動ショートカットとレジストリの実行を準備する（VBS ラッパー経由、コンソールを表示しない）
     $daemonPath = Join-Path $loc 'daemon.cmd'
     if (Test-Path $daemonPath) {
     Log-Write 'INFO' "スタートアップフォルダにショートカットを作成します: $spath"
+
+        # background-service.vbs が存在しない場合はラッパーを作成する
+        $vbsPath = Join-Path $loc 'background-service.vbs'
+        if (-not (Test-Path $vbsPath)) {
+            Log-Write 'INFO' "background-service.vbs が見つかりません。ラッパーを作成します: $vbsPath"
+            $vbsText = @'
+Set WshShell = CreateObject("WScript.Shell")
+cmd = "%DAEMON%"
+WshShell.Run chr(34) & cmd & chr(34), 0, False
+'@
+            $vbsText = $vbsText -replace '%DAEMON%', $daemonPath.Replace('"','""')
+            $vbsText | Out-File -FilePath $vbsPath -Encoding ASCII -Force
+            Log-Write 'INFO' 'VBS wrapper 作成完了。'
+        } else {
+            Log-Write 'INFO' "Wrapper VBS already exists: $vbsPath"
+        }
+
+        # ショートカットを作成する
         $wsh = New-Object -ComObject WScript.Shell
         $shortcut = $wsh.CreateShortcut($spath)
-        $shortcut.TargetPath = $daemonPath
+        $wscript = (Get-Command wscript.exe).Source
+        $shortcut.TargetPath = $wscript
+        $shortcut.Arguments = '"' + $vbsPath + '"'
         $shortcut.WorkingDirectory = Split-Path $daemonPath -Parent
         $shortcut.IconLocation = $daemonPath
         $shortcut.Save()
 
     Log-Write 'INFO' 'ログイン時にデーモンを起動するため、HKCU Run にエントリを作成/更新します...'
-        $regValue = '"' + $daemonPath + '"'
+        $regValue = '"' + $wscript + '" "' + $vbsPath + '"'
         Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name $rname -Value $regValue
 
         Log-Write 'INFO' 'デーモンを一度実行します（バックグラウンド）...'
-        Start-Process -FilePath $daemonPath -WindowStyle Hidden
+        Start-Process -FilePath $wscript -ArgumentList ('"' + $vbsPath + '"') -WindowStyle Hidden
         Log-Write 'INFO' 'デーモンを起動しました（単回実行）。'
     } else {
         Log-Write 'WARN' "$daemonPath が見つかりません — ショートカット/登録はスキップします。"
